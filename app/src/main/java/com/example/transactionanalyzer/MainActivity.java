@@ -5,33 +5,49 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 
+import com.example.transactionanalyzer.dataManager.OnDataSentListener;
+import com.example.transactionanalyzer.dataManager.TransactionViewModel;
+import com.example.transactionanalyzer.entity.Account;
+import com.example.transactionanalyzer.entity.Transaction;
+import com.example.transactionanalyzer.fragment.HomeFragment;
+import com.example.transactionanalyzer.fragment.StatsFragment;
+import com.example.transactionanalyzer.fragment.TransactionsFragment;
+import com.example.transactionanalyzer.repository.AccountManager;
+import com.example.transactionanalyzer.repository.TransactionManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity implements BottomNavigationView
-        .OnNavigationItemSelectedListener,OnDataSentListener {
+        .OnNavigationItemSelectedListener, OnDataSentListener {
     TransactionManager transactionManager;
     Toolbar toolbar;
     TransactionsFragment transactionsFragment;
     StatsFragment secondFragment = new StatsFragment();
+    HomeFragment homeFragment;
     BottomNavigationView bottomNavigationView;
+    TransactionViewModel transactionViewModel;
+
+    AccountManager accountManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         transactionsFragment = new TransactionsFragment(this);
+        homeFragment = new HomeFragment(this);
+        transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
         setContentView(R.layout.activity_main);
         setToolbar();
+        setHomeFragment();
         setBottomNavigationView();
         setTransactionsFragment();
         requestPermissions();
@@ -61,20 +77,27 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                     .replace(R.id.flFragment, secondFragment)
                     .commit();
             return true;
+        }else if (item.getItemId() == R.id.home) {
+
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.flFragment, homeFragment)
+                    .commit();
+            return true;
         }
         return false;
     }
     public void setTransactionsFragment(){
-        TransactionViewModel transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
         transactionManager=new TransactionManager(this);
-        transactionManager.addDebitTransaction(32,"viaks");
-        transactionViewModel.setDebitTrasactions(transactionManager.getTransactions("debit","-12 hours"));
-        transactionViewModel.setCreditTransactions(transactionManager.getTransactions("credit","-12 days"));
-        transactionViewModel.setLast7daysDebitTransactions(transactionManager.getTransactions("debit","-7 days"));
-        transactionViewModel.setLast7daysCreditTransactions(transactionManager.getTransactions("credit","-7 days"));
-        transactionViewModel.setLast30daysCreditTransactions(transactionManager.getMonthlyTransactions("credit",2024,03));
-        transactionViewModel.setLast30daysdebitTransactions(transactionManager.getMonthlyTransactions("debit",2024,03));
-
+        transactionManager.addCreditTransaction(20.0,"",1);
+        transactionManager.addCreditTransaction(25.0,"",2);
+        transactionManager.addDebitTransaction(10.0,"",1);
+        transactionManager.addDebitTransaction(15.0,"",2);
+        transactionViewModel.setTransactionManager(transactionManager);
+    }
+    public void setHomeFragment(){
+        accountManager = new AccountManager(this);
+        transactionViewModel.setAccountManager(accountManager);
     }
     public void setBottomNavigationView(){
         bottomNavigationView
@@ -95,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         bottomNavigationView.setItemTextColor(colorStateList);
         bottomNavigationView
                 .setOnNavigationItemSelectedListener(this);
-        bottomNavigationView.setSelectedItemId(R.id.transactions);
+        bottomNavigationView.setSelectedItemId(transactionViewModel.getId());
     }
     private void requestPermissions(){
         if(ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED){
@@ -106,7 +129,23 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
 
     @Override
-    public void onDataSent(Transaction data,String tableName) {
+    public void onDataSent(Transaction data, String tableName) {
         transactionManager.updateTransactionValue((int)data.getId(),data.getDescription(),tableName);
     }
+
+    @Override
+    public void createAccount(Account account) {
+        accountManager.addAccount(account.getName(),account.getMessageString());
+    }
+
+    @Override
+    public void updateAccount(Account account) {
+        accountManager.updateAccount(account);
+    }
+
+    @Override
+    public void deleteAccount(Account account) {
+        accountManager.deleteAccount(account.getAid());
+    }
+
 }

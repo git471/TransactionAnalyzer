@@ -1,5 +1,7 @@
-package com.example.transactionanalyzer;
+package com.example.transactionanalyzer.fragment;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,11 +13,15 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.transactionanalyzer.R;
+import com.example.transactionanalyzer.dataManager.TransactionViewModel;
+import com.example.transactionanalyzer.entity.Transaction;
+import com.example.transactionanalyzer.repository.TransactionManager;
+
 import org.eazegraph.lib.charts.PieChart;
 import org.eazegraph.lib.models.PieModel;
 
 import java.util.List;
-import java.util.Objects;
 
 public class StatsFragment extends Fragment {
     TextView tvR, tvPython, tvR7, tvPython7, tvR30, tvPython30;
@@ -55,18 +61,22 @@ public class StatsFragment extends Fragment {
     }
 
     private void setData() {
+        transactionViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        TransactionManager transactionManager=transactionViewModel.getTransactionManager();
+        int aid = sharedPreferences.getInt("aid", -1);
         // Set the percentage of language used
-        tvR.setText(String.valueOf(calculatePercentage((float) calculateTotalAmount(transactionViewModel.getDebitTrasactions()),(float) calculateTotalAmount(transactionViewModel.getCreditTransactions()))));
-        tvPython.setText(String.valueOf(calculatePercentage((float)calculateTotalAmount(transactionViewModel.getCreditTransactions()),(float) calculateTotalAmount(transactionViewModel.getDebitTrasactions()))));
-        tvR7.setText(String.valueOf(calculatePercentage((float) calculateTotalAmount(transactionViewModel.getLast7daysDebitTransactions()),(float) calculateTotalAmount(transactionViewModel.getLast7daysCreditTransactions()))));
-        tvPython7.setText(String.valueOf(calculatePercentage((float)calculateTotalAmount(transactionViewModel.getLast7daysCreditTransactions()),(float) calculateTotalAmount(transactionViewModel.getLast7daysDebitTransactions()))));
-        tvR30.setText(String.valueOf(calculatePercentage((float) calculateTotalAmount(transactionViewModel.getLast30daysdebitTransactions()),(float) calculateTotalAmount(transactionViewModel.getLast30daysCreditTransactions()))));
-        tvPython30.setText(String.valueOf(calculatePercentage((float)calculateTotalAmount(transactionViewModel.getLast30daysCreditTransactions()),(float) calculateTotalAmount(transactionViewModel.getLast30daysdebitTransactions()))));
+        tvR.setText(String.valueOf(calculatePercentage((float) calculateTotalAmount(transactionManager.getTransactions("debit","-12 hours",aid)),(float) calculateTotalAmount(transactionManager.getTransactions("credit","-12 days",aid)))));
+        tvPython.setText(String.valueOf(calculatePercentage((float)calculateTotalAmount(transactionManager.getTransactions("credit","-12 days",aid)),(float) calculateTotalAmount(transactionManager.getTransactions("debit","-12 hours",aid)))));
+        tvR7.setText(String.valueOf(calculatePercentage((float) calculateTotalAmount(transactionManager.getTransactions("debit","-7 days",aid)),(float) calculateTotalAmount(transactionManager.getTransactions("credit","-7 days",aid)))));
+        tvPython7.setText(String.valueOf(calculatePercentage((float)calculateTotalAmount(transactionManager.getTransactions("credit","-7 days",aid)),(float) calculateTotalAmount(transactionManager.getTransactions("debit","-7 days",aid)))));
+        tvR30.setText(String.valueOf(calculatePercentage((float) calculateTotalAmount(transactionManager.getMonthlyTransactions("debit",2024,03,aid)),(float) calculateTotalAmount(transactionManager.getMonthlyTransactions("credit",2024,03,aid)))));
+        tvPython30.setText(String.valueOf(calculatePercentage((float)calculateTotalAmount(transactionManager.getMonthlyTransactions("credit",2024,03,aid)),(float) calculateTotalAmount(transactionManager.getMonthlyTransactions("debit",2024,03,aid)))));
 
         // Set the data and color to the pie chart
-        setPieChart(pieChart, (int) Math.round(calculateTotalAmount(transactionViewModel.getDebitTrasactions())), (int) Math.round(calculateTotalAmount(transactionViewModel.getCreditTransactions())));
-        setPieChart(pieChart7, (int) Math.round(calculateTotalAmount(transactionViewModel.getLast7daysDebitTransactions())), (int) Math.round(calculateTotalAmount(transactionViewModel.getLast7daysCreditTransactions())));
-        setPieChart(pieChart30, (int) Math.round(calculateTotalAmount(transactionViewModel.getLast30daysdebitTransactions())), (int) Math.round(calculateTotalAmount(transactionViewModel.getLast30daysCreditTransactions())));
+        setPieChart(pieChart, (int) Math.round(calculateTotalAmount(transactionManager.getTransactions("debit","-12 hours",aid))), (int) Math.round(calculateTotalAmount(transactionManager.getTransactions("credit","-12 days",aid))));
+        setPieChart(pieChart7, (int) Math.round(calculateTotalAmount(transactionManager.getTransactions("debit","-7 days",aid))), (int) Math.round(calculateTotalAmount(transactionManager.getTransactions("credit","-7 days",aid))));
+        setPieChart(pieChart30, (int) Math.round(calculateTotalAmount(transactionManager.getMonthlyTransactions("debit",2024,03,aid))), (int) Math.round(calculateTotalAmount(transactionManager.getMonthlyTransactions("credit",2024,03,aid))));
     }
 
     private void setPieChart(PieChart chart, Integer debit, Integer credit) {

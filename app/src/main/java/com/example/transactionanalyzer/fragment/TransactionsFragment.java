@@ -1,20 +1,17 @@
-package com.example.transactionanalyzer;
+package com.example.transactionanalyzer.fragment;
 
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.os.Handler;
-import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +20,13 @@ import android.widget.Button;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import com.example.transactionanalyzer.MainActivity;
+import com.example.transactionanalyzer.dataManager.OnDataSentListener;
+import com.example.transactionanalyzer.R;
+import com.example.transactionanalyzer.dataManager.TransactionViewModel;
+import com.example.transactionanalyzer.entity.Transaction;
+import com.example.transactionanalyzer.repository.TransactionManager;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -58,24 +62,27 @@ public class TransactionsFragment extends Fragment {
         TableLayout transactionWeekCreditTable = rootView.findViewById(R.id.weektransactionCreditTable);
         addHeaderRow(transactionWeekCreditTable);
         transactionViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
-        for (Transaction transaction : transactionViewModel.getDebitTrasactions()) {
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        TransactionManager transactionManager=transactionViewModel.getTransactionManager();
+        int aid = sharedPreferences.getInt("aid", -1);
+        for (Transaction transaction : transactionManager.getTransactions("debit","-12 hours",aid)) {
             addTransactionRow(transaction, transactionDebitTable, "debit");
         }
-        for (Transaction transaction : transactionViewModel.getCreditTransactions()) {
+        for (Transaction transaction : transactionManager.getTransactions("credit","-12 days",aid)) {
             addTransactionRow(transaction, transactionCreditTable, "credit");
         }
-        for (Transaction transaction : transactionViewModel.getLast7daysDebitTransactions()) {
+        for (Transaction transaction : transactionManager.getTransactions("debit","-7 days",aid)) {
             addTransactionRow(transaction, transactionWeekDebitTable, "debit");
         }
-        for (Transaction transaction : transactionViewModel.getLast7daysCreditTransactions()) {
+        for (Transaction transaction : transactionManager.getTransactions("credit","-7 days",aid)) {
             addTransactionRow(transaction, transactionWeekCreditTable, "credit");
         }
-        ((TextView) rootView.findViewById(R.id.todayTotaldebit)).setText("Total Debit : " + calculateTotalAmount(transactionViewModel.getDebitTrasactions()));
-        ((TextView) rootView.findViewById(R.id.todayTotalCredit)).setText("Total Credit : " + calculateTotalAmount(transactionViewModel.getCreditTransactions()));
-        ((TextView) rootView.findViewById(R.id.last7daysCreditTotal)).setText("Total Credit : " + calculateTotalAmount(transactionViewModel.getLast7daysCreditTransactions()));
-        ((TextView) rootView.findViewById(R.id.last7daysDebitTotal)).setText("Total Debit : " + calculateTotalAmount(transactionViewModel.getLast7daysDebitTransactions()));
-        ((TextView) rootView.findViewById(R.id.thisMonthTotal)).setText("Total Credit : " + calculateTotalAmount(transactionViewModel.getLast30daysCreditTransactions()) + "    Total Debit : " + calculateTotalAmount(transactionViewModel.getLast30daysdebitTransactions()));
-        ((TextView) rootView.findViewById(R.id.marchMonthTotal)).setText("Total Credit : " + calculateTotalAmount(transactionViewModel.getLast30daysCreditTransactions()) + "    Total Debit : " + calculateTotalAmount(transactionViewModel.getLast30daysdebitTransactions()));
+        ((TextView) rootView.findViewById(R.id.todayTotaldebit)).setText("Total Debit : " + calculateTotalAmount(transactionManager.getTransactions("debit","-12 hours",aid)));
+        ((TextView) rootView.findViewById(R.id.todayTotalCredit)).setText("Total Credit : " + calculateTotalAmount(transactionManager.getTransactions("credit","-12 days",aid)));
+        ((TextView) rootView.findViewById(R.id.last7daysCreditTotal)).setText("Total Credit : " + calculateTotalAmount(transactionManager.getTransactions("credit","-7 days",aid)));
+        ((TextView) rootView.findViewById(R.id.last7daysDebitTotal)).setText("Total Debit : " + calculateTotalAmount(transactionManager.getTransactions("debit","-7 days",aid)));
+        ((TextView) rootView.findViewById(R.id.thisMonthTotal)).setText("Total Credit : " + calculateTotalAmount(transactionManager.getMonthlyTransactions("credit",2024,03,aid)) + "    Total Debit : " + calculateTotalAmount(transactionManager.getMonthlyTransactions("debit",2024,03,aid)));
+        ((TextView) rootView.findViewById(R.id.marchMonthTotal)).setText("Total Credit : " + calculateTotalAmount(transactionManager.getMonthlyTransactions("credit",2024,03,aid)) + "    Total Debit : " + calculateTotalAmount(transactionManager.getMonthlyTransactions("debit",2024,03,aid)));
 
         return rootView;
     }
@@ -190,7 +197,6 @@ public class TransactionsFragment extends Fragment {
             transaction.setDescription(((TextView)view.findViewById(R.id.textViewDescription)).getText().toString());
             if(mListener != null)
                 mListener.onDataSent(transaction,type);
-            startActivity(new Intent(requireActivity(), MainActivity.class));
             dialog.dismiss();
         });
         builder.setNegativeButton("Cancel", (dialog, i) -> {

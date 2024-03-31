@@ -3,7 +3,7 @@
     <solid android:color="@android:color/white" /> <!-- Set transparent background -->
     <stroke
         android:width="5dp"
-        android:color="@color/colorAccent" /> <!-- Set your desired border width and color -->
+        android:color="#0F9D58" /> <!-- Set your desired border width and color -->
     <corners android:radius="8dp" />
     <padding
         android:bottom="8dp"

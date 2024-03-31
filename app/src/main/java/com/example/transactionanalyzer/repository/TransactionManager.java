@@ -1,19 +1,23 @@
-package com.example.transactionanalyzer;
+package com.example.transactionanalyzer.repository;
 
 
-import static com.example.transactionanalyzer.DBHelper.KEY_AMOUNT;
-import static com.example.transactionanalyzer.DBHelper.KEY_DESCRIPTION_CREDIT;
-import static com.example.transactionanalyzer.DBHelper.KEY_DESCRIPTION_DEBIT;
-import static com.example.transactionanalyzer.DBHelper.KEY_ID;
-import static com.example.transactionanalyzer.DBHelper.KEY_TIMESTAMP;
-import static com.example.transactionanalyzer.DBHelper.TABLE_CREDIT;
-import static com.example.transactionanalyzer.DBHelper.TABLE_DEBIT;
+import static com.example.transactionanalyzer.repository.DBHelper.ACCOUNT_ID;
+import static com.example.transactionanalyzer.repository.DBHelper.KEY_AMOUNT;
+import static com.example.transactionanalyzer.repository.DBHelper.KEY_DESCRIPTION_CREDIT;
+import static com.example.transactionanalyzer.repository.DBHelper.KEY_DESCRIPTION_DEBIT;
+import static com.example.transactionanalyzer.repository.DBHelper.KEY_ID;
+import static com.example.transactionanalyzer.repository.DBHelper.KEY_TIMESTAMP;
+import static com.example.transactionanalyzer.repository.DBHelper.TABLE_CREDIT;
+import static com.example.transactionanalyzer.repository.DBHelper.TABLE_DEBIT;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+
+import com.example.transactionanalyzer.entity.Transaction;
+import com.example.transactionanalyzer.repository.DBHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,20 +29,22 @@ public class TransactionManager {
         dbHelper = new DBHelper(context);
     }
 
-    public void addDebitTransaction(double amount, String description) {
+    public void addDebitTransaction(double amount, String description, int aid) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_AMOUNT, amount);
         values.put(KEY_DESCRIPTION_DEBIT, description);
+        values.put(ACCOUNT_ID, aid);
         db.insert(TABLE_DEBIT, null, values);
         db.close();
     }
 
-    public void addCreditTransaction(double amount, String description) {
+    public void addCreditTransaction(double amount, String description, int aid) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_AMOUNT, amount);
         values.put(KEY_DESCRIPTION_CREDIT, description);
+        values.put(ACCOUNT_ID, aid);
         db.insert(TABLE_CREDIT, null, values);
         db.close();
     }
@@ -53,8 +59,8 @@ public class TransactionManager {
                 double amount = cursor.getDouble(cursor.getColumnIndex(KEY_AMOUNT));
                 String description = cursor.getString(cursor.getColumnIndex(KEY_DESCRIPTION_DEBIT));
                 String timestamp = cursor.getString(cursor.getColumnIndex(KEY_TIMESTAMP));
-
-                transactions.add(new Transaction(id, amount, description, timestamp));
+                int aid = cursor.getInt(cursor.getColumnIndex(ACCOUNT_ID));
+                transactions.add(new Transaction(id, amount, description, timestamp, aid));
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -72,8 +78,8 @@ public class TransactionManager {
                 double amount = cursor.getDouble(cursor.getColumnIndex(KEY_AMOUNT));
                 String description = cursor.getString(cursor.getColumnIndex(KEY_DESCRIPTION_CREDIT));
                 String timestamp = cursor.getString(cursor.getColumnIndex(KEY_TIMESTAMP));
-
-                transactions.add(new Transaction(id, amount, description, timestamp));
+                int aid = cursor.getInt(cursor.getColumnIndex(ACCOUNT_ID));
+                transactions.add(new Transaction(id, amount, description, timestamp, aid));
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -95,11 +101,11 @@ public class TransactionManager {
         }
     }
     @SuppressLint("Range")
-    public List<Transaction> getTransactions(String tableName,String time) {
+    public List<Transaction> getTransactions(String tableName,String time,int accountId) {
         List<Transaction> transactions = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        String[] columns = {"id", "amount","description", "timestamp"};
-        String selection = "timestamp >= datetime('now', '"+time+"')";
+        String[] columns = {"id", "amount","description", "timestamp","aid"};
+        String selection = "timestamp >= datetime('now', '" + time + "') AND aid = "+accountId;
         Cursor cursor = db.query(tableName, columns, selection, null, null, null, null);
         if (cursor != null) {
             while (cursor.moveToNext()) {
@@ -107,21 +113,20 @@ public class TransactionManager {
                 double amount = cursor.getDouble(cursor.getColumnIndex("amount"));
                 String timestamp = cursor.getString(cursor.getColumnIndex("timestamp"));
                 String description = cursor.getString(cursor.getColumnIndex("description"));
-                // Create Transaction object and add it to the list
-                Transaction transaction = new Transaction((long) id, amount,description, timestamp);
-                transactions.add(transaction);
+                int aid = cursor.getInt(cursor.getColumnIndex(ACCOUNT_ID));
+                transactions.add(new Transaction(id, amount, description, timestamp, aid));
             }
             cursor.close();
         }
         return transactions;
     }
     @SuppressLint("Range")
-    public List<Transaction> getMonthlyTransactions(String tableName,int year, int month) {
+    public List<Transaction> getMonthlyTransactions(String tableName,int year, int month,int accountId) {
         List<Transaction> transactions = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        String[] columns = {"id", "amount","description", "timestamp"}; // Adjust the column names accordingly
+        String[] columns = {"id", "amount","description", "timestamp", "aid"}; // Adjust the column names accordingly
         // Construct the query
-        String selection = "strftime('%Y', timestamp) = ? AND strftime('%m', timestamp) = ?";
+        String selection = "strftime('%Y', timestamp) = ? AND strftime('%m', timestamp) = ? AND aid = "+accountId;
         String[] selectionArgs = {String.valueOf(year), String.format("%02d", month)}; // Ensure month is in two digits format
         // Execute the query
         Cursor cursor = db.query(tableName, columns, selection, selectionArgs, null, null, null);
@@ -132,9 +137,8 @@ public class TransactionManager {
                 double amount = cursor.getDouble(cursor.getColumnIndex("amount"));
                 String timestamp = cursor.getString(cursor.getColumnIndex("timestamp"));
                 String description = cursor.getString(cursor.getColumnIndex("description"));
-                // Create Transaction object and add it to the list
-                Transaction transaction = new Transaction(id, amount,description, timestamp);
-                transactions.add(transaction);
+                int aid = cursor.getInt(cursor.getColumnIndex(ACCOUNT_ID));
+                transactions.add(new Transaction(id, amount, description, timestamp, aid));
             }
             cursor.close();
         }

@@ -1,4 +1,4 @@
-package com.example.transactionanalyzer;
+package com.example.transactionanalyzer.entity;
 
 import java.io.Serializable;
 
@@ -7,12 +7,14 @@ public class Transaction implements Serializable {
     double amount;
     String description;
     String timestamp;
+    int aid;
 
-    public Transaction(long id, double amount, String description, String timestamp) {
+    public Transaction(long id, double amount, String description, String timestamp,int aid) {
         this.id = id;
         this.amount = amount;
         this.description = description;
         this.timestamp = timestamp;
+        this.aid=aid;
     }
 
     public Transaction() {
@@ -48,6 +50,14 @@ public class Transaction implements Serializable {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public int getAid() {
+        return aid;
+    }
+
+    public void setAid(int aid) {
+        this.aid = aid;
     }
 }
 
