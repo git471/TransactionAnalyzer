@@ -89,10 +89,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     }
     public void setTransactionsFragment(){
         transactionManager=new TransactionManager(this);
-        transactionManager.addCreditTransaction(20.0,"",1);
-        transactionManager.addCreditTransaction(25.0,"",2);
-        transactionManager.addDebitTransaction(10.0,"",1);
-        transactionManager.addDebitTransaction(15.0,"",2);
         transactionViewModel.setTransactionManager(transactionManager);
     }
     public void setHomeFragment(){
@@ -118,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         bottomNavigationView.setItemTextColor(colorStateList);
         bottomNavigationView
                 .setOnNavigationItemSelectedListener(this);
-        bottomNavigationView.setSelectedItemId(transactionViewModel.getId());
+        bottomNavigationView.setSelectedItemId(R.id.home);
     }
     private void requestPermissions(){
         if(ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED){

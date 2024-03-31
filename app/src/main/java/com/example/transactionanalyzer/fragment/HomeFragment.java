@@ -77,6 +77,7 @@ public class HomeFragment extends Fragment {
         builder.setPositiveButton("Ok", (dialogInterface, i) -> {
             if (mListner != null)
                 mListner.createAccount(new Account(0, nameView.getText().toString(), messageView.getText().toString()));
+            requireActivity().startActivity(new Intent(requireActivity(),MainActivity.class));
             dialogInterface.dismiss();
         });
         builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
@@ -155,7 +156,6 @@ public class HomeFragment extends Fragment {
         deleteButton.setOnClickListener(view -> {
             if(mListner != null)
                 mListner.deleteAccount(account);
-            transactionViewModel.setId(R.id.home);
             requireActivity().startActivity(new Intent(requireActivity(),MainActivity.class));
         });
         deleteButton.setText("delete");
@@ -213,7 +213,6 @@ public class HomeFragment extends Fragment {
         builder.setPositiveButton("Ok", (dialogInterface, i) -> {
             if (mListner != null)
                 mListner.updateAccount(new Account(account.getAid(), nameView.getText().toString(), messageView.getText().toString()));
-            transactionViewModel.setId(R.id.home);
             requireActivity().startActivity(new Intent(requireActivity(),MainActivity.class));
             dialogInterface.dismiss();
         });

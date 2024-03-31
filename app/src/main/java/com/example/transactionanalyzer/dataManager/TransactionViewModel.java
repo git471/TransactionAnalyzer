@@ -13,7 +13,6 @@ import java.util.List;
 public class TransactionViewModel extends ViewModel {
     TransactionManager transactionManager;
     AccountManager accountManager;
-    int id= R.id.home;
 
     public TransactionManager getTransactionManager() {
         return transactionManager;
@@ -29,13 +28,5 @@ public class TransactionViewModel extends ViewModel {
 
     public void setAccountManager(AccountManager accountManager) {
         this.accountManager = accountManager;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 }
