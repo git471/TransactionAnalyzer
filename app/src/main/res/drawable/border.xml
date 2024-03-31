@@ -1,0 +1,13 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/white" /> <!-- Set transparent background -->
+    <stroke
+        android:width="5dp"
+        android:color="@color/colorAccent" /> <!-- Set your desired border width and color -->
+    <corners android:radius="8dp" />
+    <padding
+        android:bottom="8dp"
+        android:left="8dp"
+        android:right="8dp"
+        android:top="8dp" /> <!-- Set your desired padding -->
+</shape>

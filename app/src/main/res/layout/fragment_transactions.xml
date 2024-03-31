@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".TransactionsFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical">
+
+        <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Today's Transactions -->
+                <TextView
+                    android:id="@+id/todayDebitTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Last 12 hours Debit Transactions"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TableLayout
+                    android:id="@+id/transactionDebitTable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="6sp"
+                    android:stretchColumns="*">
+
+                </TableLayout>
+                <TextView
+                    android:id="@+id/todayTotaldebit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/todayCreditTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Last 12 hours Credit Transactions"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TableLayout
+                    android:id="@+id/transactionCreditTable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="6sp"
+                    android:stretchColumns="*">
+
+                </TableLayout>
+
+                <!-- Total Debit/Credit for Today -->
+                <TextView
+                    android:id="@+id/todayTotalCredit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Total Debit: $0.00 "/>
+
+                <!-- Last Week's Transactions -->
+                <TextView
+                    android:id="@+id/lastWeekDebitTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Last 7 day's Debit Transactions"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TableLayout
+                    android:id="@+id/weektransactionDebitTable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="6sp"
+                    android:stretchColumns="*">
+
+                </TableLayout>
+
+                <!-- Total Debit/Credit for Last Week -->
+                <TextView
+                    android:id="@+id/last7daysDebitTotal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Total Debit: $0.00"/>
+
+                <TextView
+                    android:id="@+id/lastWeekCreditTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Last 7 day's Credit Transactions"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TableLayout
+                    android:id="@+id/weektransactionCreditTable"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="6sp"
+                    android:stretchColumns="*">
+
+                </TableLayout>
+
+                <!-- Total Debit/Credit for Last Week -->
+                <TextView
+                    android:id="@+id/last7daysCreditTotal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Total Credit: $0.00"/>
+
+                <!-- This Month's Transactions -->
+                <TextView
+                    android:id="@+id/thisMonthTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="This Month's Usage"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Total Debit/Credit for This Month -->
+                <TextView
+                    android:id="@+id/thisMonthTotal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Total Debit: $0.00  Total Credit: $0.00" />
+                <TextView
+                    android:id="@+id/marchMonthTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="March Month's Usage"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Total Debit/Credit for This Month -->
+                <TextView
+                    android:id="@+id/marchMonthTotal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:text="Total Debit: $0.00  Total Credit: $0.00" />
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+
+</FrameLayout>
