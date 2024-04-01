@@ -2,9 +2,12 @@ package com.example.transactionanalyzer;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.ActionMenuItem;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
@@ -124,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         }
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void onDataSent(Transaction data, String tableName) {
         transactionManager.updateTransactionValue((int)data.getId(),data.getDescription(),tableName);

@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -34,6 +35,11 @@ import java.util.TimeZone;
 public class TransactionsFragment extends Fragment {
     TransactionViewModel transactionViewModel;
     private OnDataSentListener mListener;
+    TableLayout transactionCreditTable;
+    TableLayout transactionDebitTable;
+    TableLayout transactionWeekDebitTable;
+    TableLayout transactionWeekCreditTable;
+    View rootView;
 
     public TransactionsFragment(OnDataSentListener listener) {
         this.mListener=listener;
@@ -49,30 +55,36 @@ public class TransactionsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_transactions, container, false);
-        TableLayout transactionCreditTable = rootView.findViewById(R.id.transactionCreditTable);
-        addHeaderRow(transactionCreditTable);
-        TableLayout transactionDebitTable = rootView.findViewById(R.id.transactionDebitTable);
-        addHeaderRow(transactionDebitTable);
-        TableLayout transactionWeekDebitTable = rootView.findViewById(R.id.weektransactionDebitTable);
-        addHeaderRow(transactionWeekDebitTable);
-        TableLayout transactionWeekCreditTable = rootView.findViewById(R.id.weektransactionCreditTable);
-        addHeaderRow(transactionWeekCreditTable);
+        rootView = inflater.inflate(R.layout.fragment_transactions, container, false);
+        transactionCreditTable = rootView.findViewById(R.id.transactionCreditTable);
+        transactionDebitTable = rootView.findViewById(R.id.transactionDebitTable);
+        transactionWeekDebitTable = rootView.findViewById(R.id.weektransactionDebitTable);
+        transactionWeekCreditTable = rootView.findViewById(R.id.weektransactionCreditTable);
         transactionViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
+        loadTransactionsData();
+
+        return rootView;
+    }
+    @SuppressLint("SetTextI18n")
+    private void loadTransactionsData() {
+        addHeaderRow(transactionCreditTable);
+        addHeaderRow(transactionDebitTable);
+        addHeaderRow(transactionWeekDebitTable);
+        addHeaderRow(transactionWeekCreditTable);
         SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        TransactionManager transactionManager=transactionViewModel.getTransactionManager();
+        TransactionManager transactionManager=new TransactionManager(requireContext());
         int aid = sharedPreferences.getInt("aid", -1);
         for (Transaction transaction : transactionManager.getTransactions("debit","-12 hours",aid)) {
-            addTransactionRow(transaction, transactionDebitTable, "debit");
+            addTransactionRow(transaction, transactionDebitTable, "debit","h");
         }
         for (Transaction transaction : transactionManager.getTransactions("credit","-12 days",aid)) {
-            addTransactionRow(transaction, transactionCreditTable, "credit");
+            addTransactionRow(transaction, transactionCreditTable, "credit","h");
         }
         for (Transaction transaction : transactionManager.getTransactions("debit","-7 days",aid)) {
-            addTransactionRow(transaction, transactionWeekDebitTable, "debit");
+            addTransactionRow(transaction, transactionWeekDebitTable, "debit","d");
         }
         for (Transaction transaction : transactionManager.getTransactions("credit","-7 days",aid)) {
-            addTransactionRow(transaction, transactionWeekCreditTable, "credit");
+            addTransactionRow(transaction, transactionWeekCreditTable, "credit","d");
         }
         ((TextView) rootView.findViewById(R.id.todayTotaldebit)).setText("Total Debit : " + calculateTotalAmount(transactionManager.getTransactions("debit","-12 hours",aid)));
         ((TextView) rootView.findViewById(R.id.todayTotalCredit)).setText("Total Credit : " + calculateTotalAmount(transactionManager.getTransactions("credit","-12 days",aid)));
@@ -81,10 +93,9 @@ public class TransactionsFragment extends Fragment {
         ((TextView) rootView.findViewById(R.id.thisMonthTotal)).setText("Total Credit : " + calculateTotalAmount(transactionManager.getMonthlyTransactions("credit",2024,03,aid)) + "    Total Debit : " + calculateTotalAmount(transactionManager.getMonthlyTransactions("debit",2024,03,aid)));
         ((TextView) rootView.findViewById(R.id.marchMonthTotal)).setText("Total Credit : " + calculateTotalAmount(transactionManager.getMonthlyTransactions("credit",2024,03,aid)) + "    Total Debit : " + calculateTotalAmount(transactionManager.getMonthlyTransactions("debit",2024,03,aid)));
 
-        return rootView;
     }
 
-    private void addTransactionRow(Transaction transaction, TableLayout transactionTable, String type) {
+    private void addTransactionRow(Transaction transaction, TableLayout transactionTable, String type,String duration) {
         // Create a new row
         TableRow row = new TableRow(requireContext());
         row.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.row_background)); // Set custom background
@@ -101,7 +112,7 @@ public class TransactionsFragment extends Fragment {
         int descriptionColumnWidth = (int) (0.3 * tableWidth);
         descriptionTextView.setWidth(descriptionColumnWidth);
         TextView timeTextView = new TextView(requireContext());
-        timeTextView.setText(convertIntoIST(transaction.getTimestamp()));
+        timeTextView.setText(convertIntoIST(transaction.getTimestamp(),duration));
         timeTextView.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.cell_background)); // Set custom background
         Button button = new Button(requireContext());
         button.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT)); // Set width and height to wrap content
@@ -156,17 +167,24 @@ public class TransactionsFragment extends Fragment {
     }
 
     @SuppressLint("SimpleDateFormat")
-    public String convertIntoIST(String date) {
+    public String convertIntoIST(String date,String d) {
         if (date != null) {
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat outputFormatd = new SimpleDateFormat("HH:mm:ss");
+            SimpleDateFormat outputFormath = new SimpleDateFormat("yyyy-MM-dd");
             inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
             try {
                 Date inputDate = inputFormat.parse(date);
-                outputFormat.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
-                assert inputDate != null;
-                return outputFormat.format(inputDate);
+                if(d.equals("h")) {
+                    outputFormatd.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
+                    assert inputDate != null;
+                    return outputFormatd.format(inputDate);
+                }else{
+                    outputFormath.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
+                    assert inputDate != null;
+                    return outputFormath.format(inputDate);
+                }
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -194,6 +212,7 @@ public class TransactionsFragment extends Fragment {
             transaction.setDescription(((TextView)view.findViewById(R.id.textViewDescription)).getText().toString());
             if(mListener != null)
                 mListener.onDataSent(transaction,type);
+            reloadData();
             dialog.dismiss();
         });
         builder.setNegativeButton("Cancel", (dialog, i) -> {
@@ -207,4 +226,19 @@ public class TransactionsFragment extends Fragment {
         }
         alertDialog.show();
     }
+    public void reloadData() {
+        // Clear existing data from tables
+        clearTables();
+        // Reload data from data source
+        loadTransactionsData();
+
+    }
+    private void clearTables() {
+        // Clear all rows from transaction tables
+        transactionDebitTable.removeAllViews();
+        transactionCreditTable.removeAllViews();
+        transactionWeekDebitTable.removeAllViews();
+        transactionWeekCreditTable.removeAllViews();
+    }
+
 }

@@ -26,18 +26,17 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.example.transactionanalyzer.MainActivity;
 import com.example.transactionanalyzer.R;
 import com.example.transactionanalyzer.dataManager.OnDataSentListener;
 import com.example.transactionanalyzer.dataManager.TransactionViewModel;
 import com.example.transactionanalyzer.entity.Account;
 
-import org.w3c.dom.Text;
 
 public class HomeFragment extends Fragment {
     OnDataSentListener mListner;
     TransactionViewModel transactionViewModel;
     LinearLayout tableParent;
+    View rootView;
 
     public HomeFragment(OnDataSentListener listener) {
         this.mListner = listener;
@@ -53,18 +52,25 @@ public class HomeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_home, container, false);
+        rootView = inflater.inflate(R.layout.fragment_home, container, false);
         tableParent = rootView.findViewById(R.id.parent);
         transactionViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
         Button button = rootView.findViewById(R.id.addAccount);
         button.setOnClickListener(view -> {
             showAccountDialog();
         });
+        loadAccountData();
+        return rootView;
+    }
+    public void loadAccountData(){
         for (Account account : transactionViewModel.getAccountManager().getAccounts()) {
             int i = 0;
             addAccountRow(account, rootView, i++);
         }
-        return rootView;
+    }
+    public void reloadAccountData(){
+        tableParent.removeAllViews();
+        loadAccountData();
     }
 
     @SuppressLint("MissingInflatedId")
@@ -77,7 +83,7 @@ public class HomeFragment extends Fragment {
         builder.setPositiveButton("Ok", (dialogInterface, i) -> {
             if (mListner != null)
                 mListner.createAccount(new Account(0, nameView.getText().toString(), messageView.getText().toString()));
-            requireActivity().startActivity(new Intent(requireActivity(),MainActivity.class));
+            reloadAccountData();
             dialogInterface.dismiss();
         });
         builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
@@ -156,7 +162,7 @@ public class HomeFragment extends Fragment {
         deleteButton.setOnClickListener(view -> {
             if(mListner != null)
                 mListner.deleteAccount(account);
-            requireActivity().startActivity(new Intent(requireActivity(),MainActivity.class));
+            reloadAccountData();
         });
         deleteButton.setText("delete");
         deleteButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_delete_24, 0, 0, 0);
@@ -213,7 +219,7 @@ public class HomeFragment extends Fragment {
         builder.setPositiveButton("Ok", (dialogInterface, i) -> {
             if (mListner != null)
                 mListner.updateAccount(new Account(account.getAid(), nameView.getText().toString(), messageView.getText().toString()));
-            requireActivity().startActivity(new Intent(requireActivity(),MainActivity.class));
+            reloadAccountData();
             dialogInterface.dismiss();
         });
         builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
